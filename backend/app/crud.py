@@ -37,6 +37,12 @@ def get_user_by_email(*, session: Session, email: str) -> User | None:
     return session_user
 
 
+def get_user_by_phone(*, session: Session, phone: str) -> User | None:
+    statement = select(User).where(User.phone == phone)
+    session_user = session.exec(statement).first()
+    return session_user
+
+
 def authenticate(*, session: Session, email: str, password: str) -> User | None:
     db_user = get_user_by_email(session=session, email=email)
     if not db_user:

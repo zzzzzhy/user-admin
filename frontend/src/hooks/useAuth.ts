@@ -9,6 +9,7 @@ import {
   type UserPublic,
   type UserRegister,
   UsersService,
+  SmsService,
 } from "@/client"
 import { handleError } from "@/utils"
 
@@ -16,7 +17,11 @@ const isLoggedIn = () => {
   return localStorage.getItem("access_token") !== null
 }
 
-const useAuth = () => {
+interface UseAuthOptions {
+  onSignUpSuccess?: () => void
+}
+
+const useAuth = (options?: UseAuthOptions) => {
   const [error, setError] = useState<string | null>(null)
   const navigate = useNavigate()
   const queryClient = useQueryClient()
@@ -31,7 +36,9 @@ const useAuth = () => {
       UsersService.registerUser({ requestBody: data }),
 
     onSuccess: () => {
-      navigate({ to: "/login" })
+      if (options?.onSignUpSuccess) {
+        options.onSignUpSuccess()
+      }
     },
     onError: (err: ApiError) => {
       handleError(err)
@@ -58,6 +65,22 @@ const useAuth = () => {
     },
   })
 
+  const sendSmsCodeMutation = useMutation({
+    mutationFn: (phone: string) =>
+      SmsService.sendSmsCode({ requestBody: { phone } }),
+    onError: (err: ApiError) => {
+      handleError(err)
+    },
+  })
+
+  const verifySmsCodeMutation = useMutation({
+    mutationFn: (data: { phone: string; code: string }) =>
+      SmsService.verifySmsCode({ requestBody: data }),
+    onError: (err: ApiError) => {
+      handleError(err)
+    },
+  })
+
   const logout = () => {
     localStorage.removeItem("access_token")
     navigate({ to: "/login" })
@@ -66,6 +89,8 @@ const useAuth = () => {
   return {
     signUpMutation,
     loginMutation,
+    sendSmsCodeMutation,
+    verifySmsCodeMutation,
     logout,
     user,
     error,

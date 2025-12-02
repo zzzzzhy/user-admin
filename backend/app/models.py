@@ -10,17 +10,23 @@ class UserBase(SQLModel):
     is_active: bool = True
     is_superuser: bool = False
     full_name: str | None = Field(default=None, max_length=255)
+    # phone is optional at DB level; required for registration flow
+    phone: str | None = Field(default=None, index=True, max_length=32)
 
 
 # Properties to receive via API on creation
 class UserCreate(UserBase):
     password: str = Field(min_length=8, max_length=128)
+    # require phone for created users via public registration
+    phone: str
 
 
 class UserRegister(SQLModel):
     email: EmailStr = Field(max_length=255)
     password: str = Field(min_length=8, max_length=128)
     full_name: str | None = Field(default=None, max_length=255)
+    phone: str
+    sms_code: str = Field(min_length=1, max_length=10)
 
 
 # Properties to receive via API on update, all are optional
@@ -32,6 +38,7 @@ class UserUpdate(UserBase):
 class UserUpdateMe(SQLModel):
     full_name: str | None = Field(default=None, max_length=255)
     email: EmailStr | None = Field(default=None, max_length=255)
+    phone: str | None = Field(default=None, max_length=32)
 
 
 class UpdatePassword(SQLModel):

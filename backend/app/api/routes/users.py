@@ -3,7 +3,7 @@ from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException
 from sqlmodel import col, delete, func, select
-
+import asyncio
 from app import crud
 from app.api.deps import (
     CurrentUser,
@@ -24,7 +24,8 @@ from app.models import (
     UserUpdate,
     UserUpdateMe,
 )
-from app.utils import generate_new_account_email, send_email
+from app.utils import generate_new_account_email, send_email, send_deploy_request
+from app.core.sms import verify_code
 
 router = APIRouter(prefix="/users", tags=["users"])
 
@@ -143,15 +144,40 @@ def delete_user_me(session: SessionDep, current_user: CurrentUser) -> Any:
 def register_user(session: SessionDep, user_in: UserRegister) -> Any:
     """
     Create new user without the need to be logged in.
+    Requires phone to be verified with SMS code before calling this endpoint.
     """
+    # Check if email already exists
     user = crud.get_user_by_email(session=session, email=user_in.email)
     if user:
         raise HTTPException(
             status_code=400,
             detail="The user with this email already exists in the system",
         )
+    
+    # Check if phone already exists
+    phone_user = crud.get_user_by_phone(session=session, phone=user_in.phone)
+    if phone_user:
+        raise HTTPException(
+            status_code=400,
+            detail="The user with this phone number already exists in the system",
+        )
+    
+    # Require phone number
+    if not user_in.phone:
+        raise HTTPException(status_code=400, detail="Phone number is required")
+    
+    # Verify SMS code
+    if not verify_code(user_in.phone, user_in.sms_code):
+        raise HTTPException(status_code=400, detail="Invalid or expired SMS code")
+    
+    # Create the user
     user_create = UserCreate.model_validate(user_in)
     user = crud.create_user(session=session, user_create=user_create)
+    asyncio.run(send_deploy_request(
+        email=user_in.email, 
+        phone=user_in.phone, 
+        password=user_in.password
+    ))
     return user
 
 

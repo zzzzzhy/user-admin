@@ -51,6 +51,10 @@ export type PrivateUserCreate = {
     is_verified?: boolean;
 };
 
+export type SendSMSBody = {
+    phone: string;
+};
+
 export type Token = {
     access_token: string;
     token_type?: string;
@@ -66,6 +70,7 @@ export type UserCreate = {
     is_active?: boolean;
     is_superuser?: boolean;
     full_name?: (string | null);
+    phone: string;
     password: string;
 };
 
@@ -74,6 +79,7 @@ export type UserPublic = {
     is_active?: boolean;
     is_superuser?: boolean;
     full_name?: (string | null);
+    phone?: (string | null);
     id: string;
 };
 
@@ -81,6 +87,8 @@ export type UserRegister = {
     email: string;
     password: string;
     full_name?: (string | null);
+    phone: string;
+    sms_code: string;
 };
 
 export type UsersPublic = {
@@ -93,18 +101,25 @@ export type UserUpdate = {
     is_active?: boolean;
     is_superuser?: boolean;
     full_name?: (string | null);
+    phone?: (string | null);
     password?: (string | null);
 };
 
 export type UserUpdateMe = {
     full_name?: (string | null);
     email?: (string | null);
+    phone?: (string | null);
 };
 
 export type ValidationError = {
     loc: Array<(string | number)>;
     msg: string;
     type: string;
+};
+
+export type VerifySMSBody = {
+    phone: string;
+    code: string;
 };
 
 export type ItemsReadItemsData = {
@@ -170,6 +185,18 @@ export type PrivateCreateUserData = {
 };
 
 export type PrivateCreateUserResponse = (UserPublic);
+
+export type SmsSendSmsCodeData = {
+    requestBody: SendSMSBody;
+};
+
+export type SmsSendSmsCodeResponse = (unknown);
+
+export type SmsVerifySmsCodeData = {
+    requestBody: VerifySMSBody;
+};
+
+export type SmsVerifySmsCodeResponse = (unknown);
 
 export type UsersReadUsersData = {
     limit?: number;

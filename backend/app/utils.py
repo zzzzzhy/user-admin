@@ -1,10 +1,18 @@
+import asyncio
+import base64
+import hashlib
 import logging
+import os
+import random
+import secrets
+import string
 from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any
 
 import emails  # type: ignore
+import httpx
 import jwt
 from jinja2 import Template
 from jwt.exceptions import InvalidTokenError
@@ -121,3 +129,102 @@ def verify_password_reset_token(token: str) -> str | None:
         return str(decoded_token["sub"])
     except InvalidTokenError:
         return None
+
+
+async def generate_app_key() -> str:
+    """
+    生成 APP_KEY
+    
+    生成 32 字节的随机数据，并转换为 base64 格式
+    
+    Returns:
+        以 'base64:' 前缀开头的 base64 编码字符串
+    """
+    try:
+        # 生成 32 字节的随机数据
+        random_bytes = secrets.token_bytes(32)
+        # 转换为 base64 格式
+        return "base64:" + base64.b64encode(random_bytes).decode("utf-8")
+    except Exception as error:
+        logger.error(f"Error generating APP_KEY: {error}")
+        raise
+
+
+async def sleep(milliseconds: int) -> None:
+    """异步休眠函数"""
+    await asyncio.sleep(milliseconds / 1000)
+
+
+async def send_deploy_request(email: str, phone: str, password: str) -> dict[str, str]:
+    """
+    处理 Kubernetes 部署
+    
+    Args:
+        email: 用户邮箱
+        custom_app_id: 自定义的应用 ID
+        
+    Returns:
+        包含部署信息的字典
+    """
+    try:
+        access_token = os.getenv("TOKEN")
+        combined_string = email + phone
+        app_id = hashlib.md5(combined_string.encode()).hexdigest()[:8]
+        namespace_name = f"dootask-{app_id}"
+        
+        # 生成 APP_KEY
+        app_key = await generate_app_key()
+        
+        db_password = password
+        db_root_password = password
+        
+        ks_api_server = os.getenv("KS_API_SERVER")
+        
+        for index in range(3):
+            try:
+                run_response = await httpx.AsyncClient().post(
+                    f"{ks_api_server}/api/v1/workflows/argo-workflows/submit",
+                    json={
+                        "namespace": "argo-workflows",
+                        "resourceKind": "WorkflowTemplate",
+                        "resourceName": "dootask-k8s-test-deploy",
+                        "submitOptions": {
+                            "entryPoint": "dootask-deploy",
+                            "parameters": [
+                                "git-url=https://github.com/innet8/dootask-k8s.git",
+                                "git-branch=main",
+                                "tag=pro",
+                                f"db-password={db_password}",
+                                f"db-root-password={db_root_password}",
+                                f"app-key={app_key}",
+                                f"app-id={app_id}",
+                                f"namespace={namespace_name}",
+                            ],
+                            "labels": "submit-from-ui=false",
+                        },
+                    },
+                    headers={"Authorization": f"Bearer {access_token}"},
+                    timeout=30.0,
+                )
+                
+                if run_response.status_code == 200:
+                    break
+                else:
+                    await sleep(5000)
+            except httpx.RequestError as exc:
+                logger.error(f"Kubernetes deployment request error: {exc}")
+                if index < 2:
+                    await sleep(5000)
+                else:
+                    raise
+        
+        return {
+            "dbPassword": db_password,
+            "dbRootPassword": db_root_password,
+            "appId": app_id,
+            "appKey": app_key,
+            "namespaceName": namespace_name,
+        }
+    except Exception as error:
+        logger.error(f"Kubernetes deployment error: {error}")
+        raise

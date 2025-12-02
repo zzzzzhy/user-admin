@@ -26,6 +26,7 @@ const UserInformation = () => {
   const queryClient = useQueryClient()
   const { showSuccessToast } = useCustomToast()
   const [editMode, setEditMode] = useState(false)
+  const [phoneError, setPhoneError] = useState("")
   const { user: currentUser } = useAuth()
   const {
     register,
@@ -39,8 +40,38 @@ const UserInformation = () => {
     defaultValues: {
       full_name: currentUser?.full_name,
       email: currentUser?.email,
+      phone: currentUser?.phone,
     },
   })
+
+  // Validate China phone number format
+  function validatePhoneNumber(phoneNum: string | undefined): string {
+    if (!phoneNum) {
+      return ""
+    }
+
+    // Normalize phone number: remove spaces, +86, or 86 prefix
+    let normalized = phoneNum.replace(/\s/g, "")
+    if (normalized.startsWith("+86")) {
+      normalized = normalized.substring(3)
+    } else if (normalized.startsWith("86") && normalized.length > 11) {
+      normalized = normalized.substring(2)
+    }
+
+    // Check format: 11 digits starting with 1, second digit 3-9
+    const phoneRegex = /^1[3-9]\d{9}$/
+    if (!phoneRegex.test(normalized)) {
+      return "Invalid phone number format. Must be 11 digits starting with 1 and second digit 3-9"
+    }
+
+    // Check for virtual numbers
+    const virtualPrefixes = ["170", "171", "162", "165", "167", "166"]
+    if (virtualPrefixes.includes(normalized.substring(0, 3))) {
+      return "Virtual numbers are not allowed"
+    }
+
+    return ""
+  }
 
   const toggleEditMode = () => {
     setEditMode(!editMode)
@@ -61,11 +92,20 @@ const UserInformation = () => {
   })
 
   const onSubmit: SubmitHandler<UserUpdateMe> = async (data) => {
+    // Validate phone if provided
+    if (data.phone) {
+      const validationError = validatePhoneNumber(data.phone)
+      if (validationError) {
+        setPhoneError(validationError)
+        return
+      }
+    }
     mutation.mutate(data)
   }
 
   const onCancel = () => {
     reset()
+    setPhoneError("")
     toggleEditMode()
   }
 
@@ -116,6 +156,41 @@ const UserInformation = () => {
           ) : (
             <Text fontSize="md" py={2} truncate maxW="sm">
               {currentUser?.email}
+            </Text>
+          )}
+        </Field>
+        <Field
+          mt={4}
+          label="Phone"
+          invalid={!!phoneError}
+          errorText={phoneError}
+        >
+          {editMode ? (
+            <Input
+              {...register("phone", { maxLength: 32 })}
+              type="text"
+              size="md"
+              placeholder="Phone (China only)"
+              onBlur={() => {
+                const phone = getValues("phone")
+                if (phone) {
+                  const error = validatePhoneNumber(phone)
+                  setPhoneError(error)
+                } else {
+                  setPhoneError("")
+                }
+              }}
+              onChange={() => setPhoneError("")}
+            />
+          ) : (
+            <Text
+              fontSize="md"
+              py={2}
+              color={!currentUser?.phone ? "gray" : "inherit"}
+              truncate
+              maxW="sm"
+            >
+              {currentUser?.phone || "N/A"}
             </Text>
           )}
         </Field>

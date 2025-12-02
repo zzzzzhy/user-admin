@@ -6,7 +6,7 @@ export const Body_login_login_access_tokenSchema = {
             anyOf: [
                 {
                     type: 'string',
-                    pattern: 'password'
+                    pattern: '^password$'
                 },
                 {
                     type: 'null'
@@ -20,6 +20,7 @@ export const Body_login_login_access_tokenSchema = {
         },
         password: {
             type: 'string',
+            format: 'password',
             title: 'Password'
         },
         scope: {
@@ -47,6 +48,7 @@ export const Body_login_login_access_tokenSchema = {
                     type: 'null'
                 }
             ],
+            format: 'password',
             title: 'Client Secret'
         }
     },
@@ -237,6 +239,18 @@ export const PrivateUserCreateSchema = {
     title: 'PrivateUserCreate'
 } as const;
 
+export const SendSMSBodySchema = {
+    properties: {
+        phone: {
+            type: 'string',
+            title: 'Phone'
+        }
+    },
+    type: 'object',
+    required: ['phone'],
+    title: 'SendSMSBody'
+} as const;
+
 export const TokenSchema = {
     properties: {
         access_token: {
@@ -304,6 +318,10 @@ export const UserCreateSchema = {
             ],
             title: 'Full Name'
         },
+        phone: {
+            type: 'string',
+            title: 'Phone'
+        },
         password: {
             type: 'string',
             maxLength: 128,
@@ -312,7 +330,7 @@ export const UserCreateSchema = {
         }
     },
     type: 'object',
-    required: ['email', 'password'],
+    required: ['email', 'phone', 'password'],
     title: 'UserCreate'
 } as const;
 
@@ -345,6 +363,18 @@ export const UserPublicSchema = {
                 }
             ],
             title: 'Full Name'
+        },
+        phone: {
+            anyOf: [
+                {
+                    type: 'string',
+                    maxLength: 32
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Phone'
         },
         id: {
             type: 'string',
@@ -382,10 +412,20 @@ export const UserRegisterSchema = {
                 }
             ],
             title: 'Full Name'
+        },
+        phone: {
+            type: 'string',
+            title: 'Phone'
+        },
+        sms_code: {
+            type: 'string',
+            maxLength: 10,
+            minLength: 1,
+            title: 'Sms Code'
         }
     },
     type: 'object',
-    required: ['email', 'password'],
+    required: ['email', 'password', 'phone', 'sms_code'],
     title: 'UserRegister'
 } as const;
 
@@ -425,6 +465,18 @@ export const UserUpdateSchema = {
                 }
             ],
             title: 'Full Name'
+        },
+        phone: {
+            anyOf: [
+                {
+                    type: 'string',
+                    maxLength: 32
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Phone'
         },
         password: {
             anyOf: [
@@ -470,6 +522,18 @@ export const UserUpdateMeSchema = {
                 }
             ],
             title: 'Email'
+        },
+        phone: {
+            anyOf: [
+                {
+                    type: 'string',
+                    maxLength: 32
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Phone'
         }
     },
     type: 'object',
@@ -523,4 +587,20 @@ export const ValidationErrorSchema = {
     type: 'object',
     required: ['loc', 'msg', 'type'],
     title: 'ValidationError'
+} as const;
+
+export const VerifySMSBodySchema = {
+    properties: {
+        phone: {
+            type: 'string',
+            title: 'Phone'
+        },
+        code: {
+            type: 'string',
+            title: 'Code'
+        }
+    },
+    type: 'object',
+    required: ['phone', 'code'],
+    title: 'VerifySMSBody'
 } as const;

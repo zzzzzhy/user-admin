@@ -93,6 +93,33 @@ class Settings(BaseSettings):
     EMAIL_TEST_USER: EmailStr = "test@example.com"
     FIRST_SUPERUSER: EmailStr
     FIRST_SUPERUSER_PASSWORD: str
+    
+    # Redis for SMS codes and rate limiting (supports single node or cluster, comma separated host:port list)
+    REDIS_NODES: str | None = None
+    REDIS_PASSWORD: str | None = None
+
+    # SMS provider settings
+    SMS_PROVIDER: Literal["mock", "aliyun", "tencent"] = "mock"
+    SMS_CODE_TTL_SECONDS: int = 300  # 5 minutes
+    SMS_CODE_LENGTH: int = 6
+    SMS_RATE_LIMIT_SECONDS: int = 60  # 60 seconds between sends
+    SMS_RATE_LIMIT_PER_HOUR: int = 5
+
+    # Aliyun
+    ALIYUN_ACCESS_KEY_ID: str | None = None
+    ALIYUN_ACCESS_KEY_SECRET: str | None = None
+    ALIYUN_SMS_SIGN_NAME: str | None = None
+    ALIYUN_SMS_TEMPLATE_CODE: str | None = None
+
+    # Tencent
+    TENCENT_SECRET_ID: str | None = None
+    TENCENT_SECRET_KEY: str | None = None
+    TENCENT_SMS_SDK_APP_ID: str | None = None
+    TENCENT_SMS_SIGN_NAME: str | None = None
+    TENCENT_SMS_TEMPLATE_ID: str | None = None
+    # SMS sending retry policy
+    SMS_SEND_MAX_RETRIES: int = 3
+    SMS_SEND_BACKOFF_SECONDS: int = 1
 
     def _check_default_secret(self, var_name: str, value: str | None) -> None:
         if value == "changethis":
