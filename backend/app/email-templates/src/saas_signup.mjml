@@ -44,7 +44,7 @@
         <mj-divider border-width="1px" border-color="#ddd" />
         
         <mj-text css-class="info-section">
-          <div class="template-variable">{{{emailText}}}</div>
+          <div class="template-variable">{{emailText}}</div>
         </mj-text>
 
         <mj-divider border-width="1px" border-color="#ddd" />

@@ -116,7 +116,6 @@ function SignUp() {
       alert("Please enter the verification code")
       return
     }
-    console.log("222222222");
     
     // Attach phone and SMS code to payload
     // @ts-ignore - augmenting form data with phone and sms_code
