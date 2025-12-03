@@ -1,0 +1,83 @@
+<mjml>
+  <mj-head>
+    <mj-title>申请通知邮件</mj-title>
+    <mj-style inline="inline">
+      .template-variable {
+        font-family: monospace;
+        background-color: #f5f5f5;
+        padding: 10px;
+        border-radius: 4px;
+        border: 1px solid #ddd;
+        white-space: pre-wrap;
+        word-wrap: break-word;
+        margin: 10px 0;
+      }
+      .info-section {
+        margin: 20px 0;
+        padding: 15px;
+        background-color: #f8f9fa;
+        border-left: 4px solid #007bff;
+      }
+    </mj-style>
+  </mj-head>
+  <mj-body>
+    <mj-section background-color="#f4f4f4">
+      <mj-column>
+        <mj-text align="center" padding="40px 0">
+          <h1 style="color: #333;">申请系统通知</h1>
+        </mj-text>
+      </mj-column>
+    </mj-section>
+
+    <mj-section padding="20px 0">
+      <mj-column>
+
+        <!-- 新申请的情况 -->
+        <mj-text>
+          <h2 style="color: #4CAF50;">感谢您的申请</h2>
+          <p>我们已收到您的申请信息：</p>
+        </mj-text>
+
+        <!-- 条件渲染部分结束 -->
+
+        <!-- 申请信息展示 -->
+        <mj-divider border-width="1px" border-color="#ddd" />
+        
+        <mj-text css-class="info-section">
+          <div class="template-variable">{{{emailText}}}</div>
+        </mj-text>
+
+        <mj-divider border-width="1px" border-color="#ddd" />
+
+        <mj-text>
+          <p><strong>申请时间：</strong> {{date}}</p>
+        </mj-text>
+        <mj-text>
+          <p style="color: #666; font-style: italic;">我们会尽快处理您的申请。</p>
+        </mj-text>
+
+      </mj-column>
+    </mj-section>
+
+    <!-- 变量信息部分（隐藏式） -->
+    <mj-raw>
+      <!-- 以下变量将在后端被替换 -->
+      <!-- 
+        saasUrl: {{saasUrl}}
+        user: {{user}}
+        password: {{password}}
+        dbPassword: {{dbPassword}}
+        dbRootPassword: {{dbRootPassword}}
+      -->
+    </mj-raw>
+
+    <mj-section background-color="#f4f4f4" padding="20px 0">
+      <mj-column>
+        <mj-text align="center" color="#666" padding="20px 0">
+          <p>此邮件由系统自动发送，请勿直接回复</p>
+          <p style="font-size: 12px;">如有问题，请联系系统管理员</p>
+        </mj-text>
+      </mj-column>
+    </mj-section>
+  </mj-body>
+</mjml>
