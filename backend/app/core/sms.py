@@ -30,7 +30,7 @@ def send_verification_code(phone: str) -> dict:
 
     pnorm = _normalize(phone)
     if not re.match(r"^1[3-9]\d{9}$", pnorm):
-        return {"ok": False, "reason": "Invalid China phone number"}
+        return {"ok": False, "reason": "错误的手机号码"}
 
     # reject virtual numbers - common Chinese virtual number prefixes
     # 170, 171: China Unicom virtual numbers
@@ -38,20 +38,20 @@ def send_verification_code(phone: str) -> dict:
     # 166: China Unicom virtual numbers
     virtual_prefixes = {"170", "171", "162", "165", "167", "166"}
     if pnorm[:3] in virtual_prefixes:
-        return {"ok": False, "reason": "Virtual numbers are not allowed"}
+        return {"ok": False, "reason": "虚拟号码不允许使用"}
     r = get_redis()
     last_sent = r.get(_phone_key(pnorm, "last_sent"))
     now = int(time.time())
     if last_sent:
         last = int(last_sent)
         if now - last < settings.SMS_RATE_LIMIT_SECONDS:
-            return {"ok": False, "reason": "Too many requests"}
+            return {"ok": False, "reason": "请求过于频繁"}
 
     # hourly limit
     hour_key = _phone_key(pnorm, "hour_count")
     hour_count = r.get(hour_key)
     if hour_count and int(hour_count) >= settings.SMS_RATE_LIMIT_PER_HOUR:
-        return {"ok": False, "reason": "Hourly limit exceeded"}
+        return {"ok": False, "reason": "每小时请求次数已达上限"}
 
     code = _gen_code(settings.SMS_CODE_LENGTH)
     code_key = _phone_key(pnorm, "code")
@@ -64,7 +64,7 @@ def send_verification_code(phone: str) -> dict:
     template = settings.ALIYUN_SMS_TEMPLATE_CODE or settings.TENCENT_SMS_TEMPLATE_ID or "default"
     sent = provider.send(phone=pnorm, template=template, params={"code": code})
     if not sent:
-        return {"ok": False, "reason": "provider_failed"}
+        return {"ok": False, "reason": "服务提供商发送失败"}
     return {"ok": True}
 
 

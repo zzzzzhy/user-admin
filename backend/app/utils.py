@@ -150,7 +150,7 @@ def generate_saas_email(  saasUrl: str, user: str, password: str) -> EmailData:
     return EmailData(html_content=html_content, subject=subject)
 
 
-async def generate_app_key() -> str:
+def generate_app_key() -> str:
     """
     生成 APP_KEY
 
@@ -168,13 +168,7 @@ async def generate_app_key() -> str:
         logger.error(f"Error generating APP_KEY: {error}")
         raise
 
-
-async def sleep(milliseconds: int) -> None:
-    """异步休眠函数"""
-    await asyncio.sleep(milliseconds / 1000)
-
-
-async def send_deploy_request(email: str, phone: str, password: str) -> dict[str, str]:
+def send_deploy_request(email: str, phone: str, password: str) -> dict[str, str]:
     """
     处理 Kubernetes 部署
 
@@ -192,7 +186,7 @@ async def send_deploy_request(email: str, phone: str, password: str) -> dict[str
         namespace_name = f"dootask-{app_id}"
 
         # 生成 APP_KEY
-        app_key = await generate_app_key()
+        app_key = generate_app_key()
 
         db_password = password
         db_root_password = password
@@ -201,7 +195,7 @@ async def send_deploy_request(email: str, phone: str, password: str) -> dict[str
 
         for index in range(3):
             try:
-                run_response = await httpx.AsyncClient().post(
+                run_response = httpx.post(
                     f"{ks_api_server}/api/v1/workflows/argo-workflows/submit",
                     json={
                         "namespace": "argo-workflows",
@@ -223,17 +217,17 @@ async def send_deploy_request(email: str, phone: str, password: str) -> dict[str
                         },
                     },
                     headers={"Authorization": f"Bearer {access_token}"},
-                    timeout=30.0,
+                    timeout=5.0,
                 )
 
                 if run_response.status_code == 200:
                     break
                 else:
-                    await sleep(5000)
+                    time.sleep(3)
             except httpx.RequestError as exc:
                 logger.error(f"Kubernetes deployment request error: {exc}")
                 if index < 2:
-                    await sleep(5000)
+                    time.sleep(3)
                 else:
                     raise
         email_data = generate_saas_email(

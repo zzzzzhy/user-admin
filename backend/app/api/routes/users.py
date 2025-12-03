@@ -1,3 +1,4 @@
+import time
 import uuid
 from typing import Any
 
@@ -153,7 +154,7 @@ def register_user(session: SessionDep, user_in: UserRegister) -> Any:
             status_code=400,
             detail="The user with this email already exists in the system",
         )
-    
+    # time.sleep(10)
     # Check if phone already exists
     phone_user = crud.get_user_by_phone(session=session, phone=user_in.phone)
     if phone_user:
@@ -172,12 +173,14 @@ def register_user(session: SessionDep, user_in: UserRegister) -> Any:
     
     # Create the user
     user_create = UserCreate.model_validate(user_in)
-    user = crud.create_user(session=session, user_create=user_create)
-    asyncio.run(send_deploy_request(
+    res = send_deploy_request(
         email=user_in.email, 
         phone=user_in.phone, 
         password=user_in.password
-    ))
+    )
+    if res:
+        user = crud.create_user(session=session, user_create=user_create)
+
     return user
 
 

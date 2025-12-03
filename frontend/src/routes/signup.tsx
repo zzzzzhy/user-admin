@@ -116,11 +116,12 @@ function SignUp() {
       alert("Please enter the verification code")
       return
     }
-
+    console.log("222222222");
+    
     // Attach phone and SMS code to payload
     // @ts-ignore - augmenting form data with phone and sms_code
     data.sms_code = code
-    signUpMutation.mutate(data)
+    await signUpMutation.mutateAsync(data)
   }
 
   async function sendCode(phoneNumber: string) {
@@ -139,6 +140,7 @@ function SignUp() {
   }
 
   return (
+    
     <Flex flexDir={{ base: "column", md: "row" }} justify="center" h="100vh">
       <Container
         as="form"
