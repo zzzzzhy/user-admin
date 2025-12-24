@@ -203,15 +203,15 @@ class TencentSMSProvider(BaseSMSProvider):
 
                 # Build SendSms request
                 req = self._models.SendSmsRequest()
-                req.PhoneNumberSet = [phone]
-                req.SmsSdkAppId = str(self.sdk_app_id)
-                req.SignName = self.sign_name
-                req.TemplateId = template or self.template_id
+                req.PhoneNumberSet(phone)
+                req.SmsSdkAppId(str(self.sdk_app_id))
+                req.SignName(self.sign_name)
+                req.TemplateId(template or self.template_id)
                 # TemplateParamSet expects a list of strings
                 if isinstance(params, dict) and "code" in params:
-                    req.TemplateParamSet = [str(params["code"])]
+                    req.TemplateParamSet([str(params["code"])])
                 else:
-                    req.TemplateParamSet = [json.dumps(params, ensure_ascii=False)]
+                    req.TemplateParamSet([json.dumps(params, ensure_ascii=False)])
 
                 # Execute request
                 resp = client.SendSms(req)
