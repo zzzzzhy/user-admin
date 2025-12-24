@@ -204,7 +204,7 @@ class TencentSMSProvider(BaseSMSProvider):
                 # Build SendSms request
                 req = self._models.SendSmsRequest()
                 req.PhoneNumberSet = [phone]
-                req.SmsSdkAppid = str(self.sdk_app_id)
+                req.SmsSdkAppId = str(self.sdk_app_id)
                 req.SignName = self.sign_name
                 req.TemplateId = template or self.template_id
                 # TemplateParamSet expects a list of strings
