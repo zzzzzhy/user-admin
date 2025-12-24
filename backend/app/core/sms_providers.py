@@ -215,7 +215,7 @@ class TencentSMSProvider(BaseSMSProvider):
 
                 # Execute request
                 resp = client.SendSms(req)
-
+                logger.debug("Tencent SMS request: %s", resp)
                 # Parse response
                 if resp and resp.SendStatusSet:
                     send_status = resp.SendStatusSet[0]
